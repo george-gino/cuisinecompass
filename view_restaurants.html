@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Restaurants</title>
+</head>
+<body>
+    <h1>Restaurant List</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Cuisine</th>
+            </tr>
+        </thead>
+        <tbody id="restaurantList">
+        </tbody>
+    </table>
+
+    <script>
+        fetch('/get_restaurants')
+            .then(response => response.json())
+            .then(data => {
+                const restaurantList = document.getElementById('restaurantList');
+                data.forEach(restaurant => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${restaurant.name}</td>
+                        <td>${restaurant.address}</td>
+                        <td>${restaurant.cuisine}</td>
+                    `;
+                    restaurantList.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>
+
+

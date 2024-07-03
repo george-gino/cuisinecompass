@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Restaurant</title>
+    <style>
+        .suggestions {
+            border: 1px solid #ccc;
+            display: none;
+            position: absolute;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            z-index: 1;
+        }
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .suggestions div:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Restaurant</h1>
+    <form id="restaurantForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" onkeyup="searchPlace()" autocomplete="off" required>
+        <div id="suggestions" class="suggestions"></div>
+        <input type="hidden" id="place_id" name="place_id">
+        <input type="hidden" id="address" name="address">
+        <label for="cuisine">Cuisine:</label>
+        <input type="text" id="cuisine" name="cuisine" required><br><br>
+        <button type="button" onclick="submitForm()">Add Restaurant</button>
+    </form>
+    <br>
+    <button type="button" onclick="clearDatabase()">Clear Database</button>
+
+    <script>
+        function searchPlace() {
+            const query = document.getElementById('name').value;
+            if (query.length < 3) {
+                document.getElementById('suggestions').style.display = 'none';
+                return;
+            }
+            fetch(`/search_place?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    const suggestions = document.getElementById('suggestions');
+                    suggestions.innerHTML = '';
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(place => {
+                            const suggestion = document.createElement('div');
+                            suggestion.textContent = `${place.name}, ${place.formatted_address}`;
+                            suggestion.dataset.placeId = place.place_id;
+                            suggestion.dataset.address = place.formatted_address;
+                            suggestion.onclick = () => selectPlace(place.name, place.place_id, place.formatted_address);
+                            suggestions.appendChild(suggestion);
+                        });
+                        suggestions.style.display = 'block';
+                    } else {
+                        suggestions.style.display = 'none';
+                    }
+                });
+        }
+
+        function selectPlace(name, placeId, address) {
+            document.getElementById('name').value = name;
+            document.getElementById('place_id').value = placeId;
+            document.getElementById('address').value = address;
+            document.getElementById('suggestions').style.display = 'none';
+        }
+
+        function submitForm() {
+            const form = document.getElementById('restaurantForm');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            fetch('/add_restaurant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                form.reset();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function clearDatabase() {
+            fetch('/clear_restaurants', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
